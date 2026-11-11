@@ -6,16 +6,16 @@ Classification: **custom skill** marks workbook-specific work that is not provid
 
 ## Setup
 
-- [ ] **[P0] Confirm the project inventory and identifiers:** collect authoritative program names/codes, customer and project inventory, unique project-code conventions, and representative examples. (custom skill)
-- [ ] **[P0] Confirm project ownership rules:** agree on one accountable delivery manager per project and whether optional contributors are needed. (custom skill)
-- [ ] **[P0] Inspect representative source files:** review sample project-register and planning/resource/budget CSV/XLSX exports; identify authoritative sources, formats, columns, identifiers, and update frequency. (custom skill)
-- [ ] **[P0] Define MVP acceptance data:** select a small representative dataset covering multiple programs, project statuses/RAG values, missing fields, milestones, staffing, and budget data where available. (custom skill)
-- [ ] **[P0] Agree on local operating constraints:** identify supported operating systems, local application-data location, project-volume target, and dashboard/search response-time target. (custom skill)
-- [ ] **[P0] Agree on policy-dependent settings:** assign owners and capture decisions for alert thresholds, reporting week/time zone, retention, backup location, deletion procedure, and success measures; mark undecided values as pending rather than inventing defaults. (custom skill)
-- [ ] **[P0] Record integration and privacy boundaries:** confirm that the MVP uses no external AI or network-dependent core workflow, and document that Jira/Microsoft 365 access requires separate approval before connector work begins. (custom skill)
-- [ ] **[P1] Establish the project skeleton:** create the local web application structure, configuration approach, development commands, and dependency management for the approved implementation stack. (custom skill)
-- [ ] **[P0] Define safe local defaults:** bind the application to loopback only; store application data outside the source repository; prohibit embedded credentials and plain-text secret settings. (custom skill)
-- [ ] **[P1] Define data and API contracts:** agree on field names, identifier rules, timestamps/time zone handling, validation-error shape, and API responses for programs, projects, updates, proposals, alerts, and import jobs. (custom skill)
+- [ ] **[P0] Confirm the project inventory and identifiers:** collect authoritative program names/codes, customer and project inventory, unique project-code conventions, and representative examples. (custom skill; GitHub issue #1)
+- [ ] **[P0] Confirm project ownership rules:** agree on one accountable delivery manager per project and whether optional contributors are needed. (custom skill; GitHub issues #2, #19)
+- [ ] **[P0] Inspect representative source files:** review sample project-register and planning/resource/budget CSV/XLSX exports; identify authoritative sources, formats, columns, identifiers, and update frequency. (custom skill; GitHub issue #3)
+- [ ] **[P0] Define MVP acceptance data:** select a small representative dataset covering multiple programs, project statuses/RAG values, missing fields, milestones, staffing, and budget data where available. (custom skill; GitHub issues #4, #18)
+- [ ] **[P0] Agree on local operating constraints:** identify supported operating systems, local application-data location, project-volume target, and dashboard/search response-time target. (custom skill; GitHub issues #5, #17)
+- [ ] **[P0] Agree on policy-dependent settings:** assign owners and capture decisions for alert thresholds, reporting week/time zone, retention, backup location, deletion procedure, and success measures; mark undecided values as pending rather than inventing defaults. (custom skill; GitHub issues #6, #16)
+- [ ] **[P0] Record integration and privacy boundaries:** confirm that the MVP uses no external AI or network-dependent core workflow, and document that Jira/Microsoft 365 access requires separate approval before connector work begins. (custom skill; GitHub issues #7, #15)
+- [ ] **[P1] Establish the project skeleton:** create the local web application structure, configuration approach, development commands, and dependency management for the approved implementation stack. (custom skill; GitHub issues #8, #14)
+- [ ] **[P0] Define safe local defaults:** bind the application to loopback only; store application data outside the source repository; prohibit embedded credentials and plain-text secret settings. (custom skill; GitHub issues #9, #11, #13)
+- [ ] **[P1] Define data and API contracts:** agree on field names, identifier rules, timestamps/time zone handling, validation-error shape, and API responses for programs, projects, updates, proposals, alerts, and import jobs. (custom skill; GitHub issues #10, #12)
 
 ## Core Features
 
