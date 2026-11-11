@@ -6,6 +6,15 @@
       "args": [
         "${workspaceFolder}/tools/mcp_echo_server.py"
       ]
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${workspaceFolder}"
+      ]
     }
   }
 }
