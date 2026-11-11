@@ -15,6 +15,10 @@
         "@modelcontextprotocol/server-filesystem",
         "${workspaceFolder}"
       ]
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
     }
   }
 }
