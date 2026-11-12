@@ -18,4 +18,6 @@ Each entry below is an instruction file with a one-line description.
   + Target: `work/**`
 - [`./instructions/validate-import-data.agent.md`](./validate-import-data.agent.md) — Validate imported rows, identify duplicates and conflicts, and apply accepted data safely.
   + Keywords: import validation, row-level errors, duplicate detection, repeated updates, safe import, rollback
+- [`./instructions/validate-markdown-format.agent.md`](./validate-markdown-format.agent.md) — Validate project-authored Markdown files for consistent basic formatting.
+  + Keywords: Markdown formatting, validate Markdown, format documentation, check Markdown files
   + Target: `work/**`
