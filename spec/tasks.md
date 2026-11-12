@@ -9,11 +9,33 @@ Complete dependencies before starting dependent tasks. `[P]` marks work that
 can proceed in parallel once its listed dependencies are complete. A task is
 done only when all acceptance criteria are verified.
 
+## Recommended execution order
+
+1. **Low-risk, high-gain alignment**: confirm the implementation root is the
+   existing `work/payments-portfolio/` skeleton; complete T003 tooling
+   decisions; and run T001/T002 external discovery in parallel without
+   enabling live Jira access.
+2. **Foundation in parallel**: after T003, populate the web/API skeleton (T004)
+   and establish the loopback database runtime (T005) in parallel. Then run
+   T006 after T005 and T007/T008 after T004.
+3. **Security gate before credentials**: finish the OAuth/browser security
+   feasibility decision and Keychain integration selection before T009/T010.
+   If the local OAuth design does not pass, stop live-integration work and
+   continue only with fixture-backed functionality.
+4. **Build in dependency order**: T009/T010/T011 and validated setup precede
+   Jira access; T014/T015 precede snapshots and refresh; T019 precedes
+   frontend integration; metrics and UI follow typed data/API contracts.
+5. **Acceptance and handoff**: finish synthetic tests and security boundary
+   checks before final documentation and acceptance.
+
 ## Phase 0 — Prerequisites and technical decisions
 
 ### T001 — Confirm Jira board and field configuration
 
 **Depends on**: None; external operator input.
+
+**Status**: Blocked pending operator input. See
+[jira-setup.md](./jira-setup.md).
 
 - [ ] Record and validate the target Jira Cloud Scrum board ID.
 - [ ] Record the board's story-point field ID, if used.
@@ -23,8 +45,8 @@ done only when all acceptance criteria are verified.
 
 - The values are documented as environment-specific setup inputs and are not
   hard-coded into source code.
-- The board is verified as a Scrum board accessible to the intended OAuth
-  identity.
+- Board metadata is verified as Scrum where an authorized metadata source is
+  available. Access verification for the prototype identity is gated on T010.
 - If an input cannot be obtained, live setup remains disabled and the missing
   value is reported; no value is guessed.
 
@@ -36,11 +58,16 @@ done only when all acceptance criteria are verified.
 - [ ] Obtain approval for least-privilege read-only scopes.
 - [ ] Document the approved redirect URI and local setup procedure without
   recording secrets.
+- [ ] Research and record a stop/go decision for local callback feasibility,
+  OAuth state/replay protection, callback error handling, browser session and
+  cookie protections, CSRF/origin policy, and dashboard-open refresh signals.
 
 **Acceptance criteria**
 
 - The approval, scopes, and redirect URI are documented.
 - No Jira write scope is requested.
+- The callback/browser security decision is documented and reviewed before
+  T010 begins.
 - If approval is pending, live Jira access stays disabled and fixture-based
   development can continue.
 
@@ -48,7 +75,8 @@ done only when all acceptance criteria are verified.
 
 **Depends on**: None; may proceed in parallel with T001–T002.
 
-- [ ] Select the package manager and pin a supported Node.js version.
+- [ ] Select the package manager and pin Node.js 26 LTS to an exact patch
+  version.
 - [ ] Select PostgreSQL driver, migration tool, test runner, and macOS Keychain
   integration.
 - [ ] Record versions and rationale in project setup documentation.
@@ -58,20 +86,23 @@ done only when all acceptance criteria are verified.
 - All choices are compatible with React 18/Vite, Node.js/Express, PostgreSQL
   15, and macOS Keychain.
 - Tool versions can be reproduced from repository configuration.
+- Node.js 26 LTS and package-manager versions are pinned with repository
+  configuration and a lockfile.
 - No choice requires storing OAuth credentials or Jira issue snapshots in the
   repository or database.
 
 **Milestone M0**: T001–T003 are complete, or live Jira integration is explicitly
-held behind the missing external prerequisites.
+held behind missing external prerequisites or a failed OAuth feasibility gate.
+T004/T005 foundation work may proceed independently after T003.
 
 ## Phase 1 — Application foundation and local runtime
 
-### T004 — Create the typed web/API workspace
+### T004 — Populate the existing typed web/API workspace
 
 **Depends on**: T003.
 
-- [ ] Create root workspace scripts and separate `apps/web` and `apps/api`
-  packages.
+- [ ] Use the existing `work/payments-portfolio/` project root and create root
+  workspace scripts for separate `apps/web` and `apps/api` packages.
 - [ ] Configure React 18/Vite and Node.js/Express with TypeScript.
 - [ ] Add development, build, type-check, and test scripts.
 
@@ -79,6 +110,8 @@ held behind the missing external prerequisites.
 
 - A clean install followed by the documented build and type-check commands
   succeeds.
+- Work is added to the existing skeleton; no duplicate project root is
+  created.
 - Web and API packages remain independently buildable.
 - No credentials or real Jira data are present in source or example
   configuration.
@@ -135,6 +168,8 @@ held behind the missing external prerequisites.
 - [ ] Configure CI for install, lint, type-check, build, and test commands.
 - [ ] Ensure CI uses mocks/fixtures and does not require Jira credentials or
   real project content.
+- [ ] Run adapter contract tests with a mocked Keychain implementation; run
+  real Keychain checks only in the macOS verification path.
 
 **Acceptance criteria**
 
@@ -142,6 +177,7 @@ held behind the missing external prerequisites.
   credentials.
 - Failure in lint, type-check, build, or tests fails the CI job.
 - No job publishes or logs secrets.
+- The CI runner and OS-specific Keychain test strategy are documented.
 
 **Milestone M1**: T004–T008 complete; local application and database start
 reproducibly with loopback-only listeners and an empty passing test suite.
@@ -150,7 +186,7 @@ reproducibly with loopback-only listeners and an empty passing test suite.
 
 ### T009 — Implement the Keychain credential adapter
 
-**Depends on**: T003.
+**Depends on**: T002, T003.
 
 - [ ] Implement backend-only read, write, and delete operations for OAuth
   credentials using the selected macOS Keychain integration.
@@ -322,7 +358,8 @@ configuration work with mocks, with live integration still approval-gated.
 
 **Acceptance criteria**
 
-- Two synthetic identities with disjoint issue sets never observe each
+- Two synthetic identities with disjoint issue sets are connected
+  sequentially, with disconnect/cleanup between them, and never observe each
   other's rows or aggregates.
 - Lifecycle tests prove data is cleared on every specified event.
 - No cross-identity or persistent snapshot cache exists.
@@ -374,7 +411,7 @@ is produced atomically, or a clear non-success state is returned.
 - [ ] Build the React application shell and route/page for the sprint
   dashboard.
 - [ ] Add connection, setup-required, loading, empty-sprint,
-  multiple-sprint-error, stale/failed-refresh, and disconnected states.
+  multiple-sprint-error, failed-refresh, and disconnected states.
 
 **Acceptance criteria**
 
@@ -483,8 +520,8 @@ and supported desktop browsers.
 - SC-001 through SC-012 each map to at least one automated test or an
   explicitly approved manual check.
 - CI runs the tests without Jira credentials or real project content.
-- Tests fail when unauthorized issue rows or derived metrics leak across
-  identities.
+- Sequential identity-switch tests fail when unauthorized issue rows or
+  derived metrics leak across identities.
 
 ### T028 — Verify security and data boundaries
 

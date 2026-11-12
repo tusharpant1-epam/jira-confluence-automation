@@ -76,8 +76,8 @@ and approve it before implementation.
   or production hosting requirements. Define and review those before enabling
   team-wide access.
 - The Jira dashboard initially covers one configured Scrum board and its
-  currently active sprint. Refresh data every 5-10 minutes as specified by the
-  requirements.
+  currently active sprint. For the local prototype, refresh every five minutes
+  while the dashboard is open, as narrowed by the feature specification.
 - Confluence automation behavior and scope must be specified per feature;
   mentioning Confluence does not authorize content changes.
 

@@ -36,17 +36,21 @@ release.
 ## Remaining external prerequisites
 
 These are not unanswered product behavior choices; they are values or
-approvals that must be supplied before live Jira setup can complete:
+approvals that must be supplied before live Jira setup can complete. Their
+current status is tracked in [jira-setup.md](./jira-setup.md):
 
-1. The actual Jira Cloud Scrum board ID.
-2. The board's story-point field ID, if estimates are used.
-3. The board's explicit blocked field or exact blocked status names.
+1. The actual Jira Cloud Scrum board ID — not provided; T001 remains blocked.
+2. The board's story-point field ID, or confirmation that estimates are unused
+   — not provided.
+3. The board's explicit blocked field or exact blocked status names — not
+   provided.
 4. Jira site-administrator approval and registration of the delegated OAuth
-   integration with its least-privilege read-only scopes.
+   integration with its least-privilege read-only scopes — still required;
+   this is tracked separately under T002.
 
-Until these prerequisites are provided and validated, the affected live
-integration or metrics remain unavailable. The prototype must not guess
-configuration or substitute synthetic data in the live dashboard.
+Until these prerequisites are provided and validated, live Jira setup and
+affected board-specific metrics remain unavailable. The prototype must not
+guess configuration or substitute synthetic data in the live dashboard.
 
 ## Explicit prototype exclusions
 

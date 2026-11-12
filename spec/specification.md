@@ -346,8 +346,9 @@ visible data and refresh status for each case.
 - **SC-009**: In first-release acceptance testing, no dashboard action creates,
   edits, or deletes Jira issues or Confluence content.
 - **SC-010**: Tests using synthetic Jira identities with disjoint issue
-  permissions confirm that issue rows and all derived metrics are isolated to
-  the active identity.
+  permissions, connected sequentially with disconnect/cleanup between them,
+  confirm that issue rows and all derived metrics are isolated to the active
+  identity.
 - **SC-011**: Setup rejects an inaccessible/non-Scrum board and does not
   display sprint data when zero or multiple active sprints are returned.
 - **SC-012**: Synthetic fixtures verify combined filters, sorting, missing

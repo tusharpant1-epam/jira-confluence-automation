@@ -4,6 +4,9 @@
 
 **Input**: Clarified feature specification and project constitution in `spec/`.
 
+**Implementation root**: `work/payments-portfolio/`, reusing the existing
+committed empty project skeleton.
+
 ## Summary
 
 Deliver a read-only, single-user macOS prototype showing the currently active
@@ -20,13 +23,13 @@ team-wide deployment are part of this plan.
 
 ## Technical Context
 
-**Language/Version**: TypeScript on Node.js (current project Node.js LTS; pin a supported version in project configuration)
+**Language/Version**: TypeScript on Node.js 26 LTS; pin the exact patch version and enforce it in project configuration
 
 **Primary Dependencies**: React 18, Vite, Express; PostgreSQL driver and macOS Keychain integration to be selected during foundation work
 
 **Storage**: PostgreSQL 15 in Docker for non-secret board configuration, field mappings, and refresh metadata; process memory for the current authorized issue snapshot; macOS Keychain for OAuth credentials
 
-**Testing**: Unit tests for mapping/metrics and validation; API/integration tests with mocked Jira responses; React component/accessibility tests; end-to-end acceptance tests against synthetic fixtures. Test runner selection is a Phase 1 decision.
+**Testing**: Unit tests for mapping/metrics and validation; API/integration tests with mocked Jira responses; React component/accessibility tests; end-to-end acceptance tests against synthetic fixtures. Select the test runner in Phase 0 and configure its scripts in Phase 1.
 
 **Target Platform**: Local macOS prototype; loopback-only browser and API access; Docker-based PostgreSQL 15
 
@@ -69,6 +72,10 @@ live Jira integration until the external prerequisites below are satisfied.
 - Verify the local OAuth redirect/callback approach and the mechanism for
   reading/writing credentials in macOS Keychain without exposing secrets in
   source, browser code, logs, or process arguments.
+- Record a security decision for callback/state validation, callback replay
+  handling, local browser session and cookie protections, CSRF/origin policy,
+  and how refresh scheduling knows the dashboard is open. Do not begin OAuth
+  implementation until this decision passes review.
 - Confirm Node.js version pinning, package manager, test runner, PostgreSQL
   driver, and Keychain library/OS integration approach; record choices in
   project setup documentation.
@@ -80,13 +87,15 @@ live Jira integration until the external prerequisites below are satisfied.
 - OAuth app registration/scopes are approved, or Jira integration remains
   disabled while the fixture-driven prototype proceeds.
 - Keychain and redirect design is validated before credentials are handled.
+- OAuth callback and browser-session security decisions have a documented
+  stop/go outcome before implementation.
 
 ### Phase 1 — Application foundation and local runtime
 
 **Work**
 
-- Create the web/API workspace and project scripts with pinned React 18,
-  Vite, Node.js/Express, and TypeScript configuration.
+- Populate the existing web/API workspace and project scripts with pinned
+  React 18, Vite, Node.js/Express, and TypeScript configuration.
 - Add Docker Compose configuration for PostgreSQL 15, publishing its port
   only on loopback.
 - Add the initial schema/migrations for non-secret board configuration,
@@ -216,30 +225,28 @@ live Jira integration until the external prerequisites below are satisfied.
   writes, persistent issue snapshots, or production hosting under this plan.
   Each requires a separate specification and review.
 
-## Proposed Project Structure
+## Project Structure
 
 ```text
-project-root/
+work/payments-portfolio/
 ├── package.json
 ├── docker-compose.yml
 ├── apps/
-│   ├── web/
-│   │   └── src/
-│   │       ├── app/
-│   │       ├── components/
-│   │       ├── features/sprint-dashboard/
-│   │       └── api/
-│   └── api/
-│       └── src/
-│           ├── config/
-│           ├── routes/
-│           ├── auth/
-│           ├── jira/
-│           ├── sprint/
-│           ├── persistence/
-│           └── server.ts
-├── db/
-│   └── migrations/
+│   ├── web/src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   ├── features/sprint-dashboard/
+│   │   └── api/
+│   └── api/src/
+│       ├── config/
+│       ├── routes/
+│       ├── auth/
+│       ├── jira/
+│       ├── sprint/
+│       ├── persistence/
+│       └── server.ts
+├── packages/contracts/src/
+├── db/migrations/
 ├── tests/
 │   ├── fixtures/jira/
 │   ├── api/
@@ -247,11 +254,12 @@ project-root/
 └── docs/
 ```
 
-**Structure Decision**: Use a small web monorepo with distinct frontend and
-backend packages. Keep Jira API and OAuth logic in the backend; isolate
-Keychain and PostgreSQL access behind adapters; keep issue snapshots in
-backend memory. Shared contracts may be added only if needed to keep API
-payloads type-safe.
+**Structure Decision**: Populate the existing empty skeleton at
+`work/payments-portfolio/` rather than creating a second project root. Use a
+small web monorepo with distinct frontend and backend packages. Keep Jira API
+and OAuth logic in the backend; isolate Keychain and PostgreSQL access behind
+adapters; keep issue snapshots in backend memory. Use the existing
+`packages/contracts/` for shared API types.
 
 ## Risks and Mitigations
 

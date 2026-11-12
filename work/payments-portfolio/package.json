@@ -1,0 +1,26 @@
+{
+  "name": "jira-active-sprint-dashboard",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @jira-dashboard/api",
+    "dev:web": "npm run dev --workspace @jira-dashboard/web",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "9.1.2"
+  },
+  "engines": {
+    "node": "26.13.1",
+    "npm": "11.20.0"
+  },
+  "packageManager": "npm@11.20.0"
+}
