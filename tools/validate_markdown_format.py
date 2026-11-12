@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
 from pathlib import Path
@@ -28,6 +29,27 @@ def markdown_files() -> list[Path]:
             if filename.endswith(".md")
         )
     return sorted(path for path in files if path != OUTPUT_FILE)
+
+
+def selected_files(arguments: list[str]) -> list[Path]:
+    if not arguments:
+        return markdown_files()
+
+    files: list[Path] = []
+    for argument in arguments:
+        path = Path(argument)
+        if not path.is_absolute():
+            path = ROOT / path
+        path = path.resolve()
+        if not path.is_relative_to(ROOT):
+            raise ValueError(f"File is outside the workspace: {argument}")
+        if not path.is_file():
+            raise FileNotFoundError(f"Markdown file not found: {argument}")
+        if path.suffix != ".md":
+            raise ValueError(f"Expected a .md file: {argument}")
+        if path != OUTPUT_FILE and path not in files:
+            files.append(path)
+    return sorted(files)
 
 
 def line_for_offset(content: bytes, offset: int) -> int:
@@ -107,10 +129,20 @@ def check_file(path: Path) -> list[str]:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Validate Markdown formatting across the workspace or selected files."
+    )
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="Optional Markdown paths relative to the workspace root (default: scan workspace).",
+    )
+    args = parser.parse_args()
+
     if not RULES_FILE.is_file():
         raise FileNotFoundError(f"Validation instruction not found: {RULES_FILE}")
 
-    files = markdown_files()
+    files = selected_files(args.files)
     findings = [issue for path in files for issue in check_file(path)]
     passed = len(files) - len({issue.split(":", 1)[0] for issue in findings})
 

@@ -2,7 +2,7 @@
 
 - **Scope:** Project-authored Markdown files; excluded `.git`, virtual environments, `node_modules`, and this report.
 - **Rules:** [instructions/validate-markdown-format.agent.md](../instructions/validate-markdown-format.agent.md)
-- **Files checked:** 33
+- **Files checked:** 34
 - **Files with findings:** 11
 - **Total findings:** 37
 
