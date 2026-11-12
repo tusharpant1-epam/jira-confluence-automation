@@ -4,12 +4,14 @@ Priorities: **P0** = required for the local MVP or a release gate; **P1** = impo
 
 Classification: **custom skill** marks workbook-specific work that is not provided by an existing MCP server; it does not replace the required local application code. No current task is marked **MCP** because the Jira/Confluence connector is deferred pending approval, and those servers do not implement the workbook's local workflows. If connector work is approved, add it as a separate MCP task.
 
+Batch approach: **Approach 1** = a single request for a deliberately bounded set of up to 3–5 files/items; **Approach 2** = iterative rereading for a quality-critical set of 10–15 files/items when automation is not appropriate; **Approach 3** = Script Automation for repeatable or larger batch processing. Use Approach 3 for batch imports, validation, report generation, and repeatable batch tests. Approach 2 is reserved for cases that cannot safely or usefully be automated; no current backlog task meets that condition.
+
 ## Setup
 
 - [ ] **[P0] Confirm the project inventory and identifiers:** collect authoritative program names/codes, customer and project inventory, unique project-code conventions, and representative examples. (custom skill; GitHub issue #1)
 - [ ] **[P0] Confirm project ownership rules:** agree on one accountable delivery manager per project and whether optional contributors are needed. (custom skill; GitHub issues #2, #19)
-- [ ] **[P0] Inspect representative source files:** review sample project-register and planning/resource/budget CSV/XLSX exports; identify authoritative sources, formats, columns, identifiers, and update frequency. (custom skill; GitHub issue #3)
-- [ ] **[P0] Define MVP acceptance data:** select a small representative dataset covering multiple programs, project statuses/RAG values, missing fields, milestones, staffing, and budget data where available. (custom skill; GitHub issues #4, #18)
+- [ ] **[P0] Inspect representative source files:** review up to 3–5 sample project-register and planning/resource/budget CSV/XLSX exports; identify authoritative sources, formats, columns, identifiers, and update frequency. (custom skill; GitHub issue #3; Approach 1: Single Request)
+- [ ] **[P0] Define MVP acceptance data:** select a small, curated dataset covering multiple programs, project statuses/RAG values, missing fields, milestones, staffing, and budget data where available. (custom skill; GitHub issues #4, #18; Approach 1: Single Request)
 - [ ] **[P0] Agree on local operating constraints:** identify supported operating systems, local application-data location, project-volume target, and dashboard/search response-time target. (custom skill; GitHub issues #5, #17)
 - [ ] **[P0] Agree on policy-dependent settings:** assign owners and capture decisions for alert thresholds, reporting week/time zone, retention, backup location, deletion procedure, and success measures; mark undecided values as pending rather than inventing defaults. (custom skill; GitHub issues #6, #16)
 - [ ] **[P0] Record integration and privacy boundaries:** confirm that the MVP uses no external AI or network-dependent core workflow, and document that Jira/Microsoft 365 access requires separate approval before connector work begins. (custom skill; GitHub issues #7, #15)
@@ -35,35 +37,35 @@ Classification: **custom skill** marks workbook-specific work that is not provid
 - [ ] **[P0] Implement actionable exception views:** surface overdue/slipping milestones, aging blockers, open RAID items, client escalations, and resource/budget variance only when supporting data exists. (custom skill)
 - [ ] **[P0] Implement alert records and navigation:** link every alert to its project and supporting record/source and explain the condition that triggered it. (custom skill)
 - [ ] **[P1] Implement configurable alert rules:** support explicit project health, overdue dates, and approved/configured thresholds; do not hard-code unapproved numeric business thresholds. (custom skill)
-- [ ] **[P0] Implement the weekly executive summary:** generate an in-app preview covering portfolio health, material changes, at-risk projects, key milestones, blockers/escalations, and decisions/actions needing attention. (custom skill)
-- [ ] **[P0] Support report review and download:** show reporting period, generation time, and source/update freshness; let the operator correct the preview and download the report. (custom skill)
+- [ ] **[P0] Implement the weekly executive summary:** generate an in-app preview covering portfolio health, material changes, at-risk projects, key milestones, blockers/escalations, and decisions/actions needing attention. (custom skill; Approach 3: Script Automation for assembling and validating report inputs)
+- [ ] **[P0] Support report review and download:** show reporting period, generation time, and source/update freshness; let the operator correct the preview and download the report. (custom skill; Approach 3: Script Automation for report generation; operator reviews the result)
 - [ ] **[P1] Make refresh/import state visible:** show the most recent refresh/import time and job outcome on the dashboard, including actionable failure details. (custom skill)
 
 ## Integration
 
 - [ ] **[P0] Connect the browser UI to the local API and database:** wire register, project detail, review queue, dashboard, alert, and report screens to persisted data and handle loading, empty, validation, and error states. (custom skill)
-- [ ] **[P0] Implement the user-triggered import workflow:** let the operator select a CSV/XLSX file, identify its source, preview rows, map columns, validate values, and review an acceptance summary before applying changes. (custom skill)
-- [ ] **[P0] Implement import validation and safe application:** report row-level errors, detect duplicate records and likely repeated updates, prevent silent overwrite of accepted data, and ensure invalid rows cannot cause partial or silent data loss. (custom skill)
-- [ ] **[P0] Persist import job details:** record source, start/end time, result, record counts, and actionable errors; make partial failures visible and never display a failed job as successful. (custom skill)
-- [ ] **[P0] Convert imported candidates into proposals:** associate import records with project codes and source identifiers where available; leave unresolved or ambiguous project matches in the review queue without guessing or discarding them. (custom skill)
+- [ ] **[P0] Implement the user-triggered import workflow:** let the operator select a CSV/XLSX file, identify its source, preview rows, map columns, validate values, and review an acceptance summary before applying changes. (custom skill; Approach 3: Script Automation for batch parsing, preview, and validation; operator confirms application)
+- [ ] **[P0] Implement import validation and safe application:** report row-level errors, detect duplicate records and likely repeated updates, prevent silent overwrite of accepted data, and ensure invalid rows cannot cause partial or silent data loss. (custom skill; Approach 3: Script Automation)
+- [ ] **[P0] Persist import job details:** record source, start/end time, result, record counts, and actionable errors; make partial failures visible and never display a failed job as successful. (custom skill; Approach 3: Script Automation)
+- [ ] **[P0] Convert imported candidates into proposals:** associate import records with project codes and source identifiers where available; leave unresolved or ambiguous project matches in the review queue without guessing or discarding them. (custom skill; Approach 3: Script Automation for batch association; uncertain matches remain for operator review)
 - [ ] **[P0] Integrate manual update entry with review and audit flows:** ensure updates created through the UI follow the agreed authoritative-record and traceability rules. (custom skill)
 - [ ] **[P0] Integrate dashboard alerts with their evidence:** verify that alert lists, project details, and supporting updates/source references navigate consistently. (custom skill)
-- [ ] **[P0] Integrate report generation with reviewed data:** base summaries on authoritative accepted updates, include current data freshness, and ensure corrections to the preview do not silently alter source records. (custom skill)
+- [ ] **[P0] Integrate report generation with reviewed data:** base summaries on authoritative accepted updates, include current data freshness, and ensure corrections to the preview do not silently alter source records. (custom skill; Approach 3: Script Automation)
 
 ## Testing
 
 - [ ] **[P0] Test register validation and integrity:** cover unique project codes, required fields, valid program relationships, ownership, archive behavior, and missing-versus-zero handling. (custom skill)
-- [ ] **[P0] Test CSV/XLSX import end to end:** cover preview, field mapping, valid and invalid rows, duplicate detection, repeated imports, row-level errors, and preservation of existing accepted values. (custom skill)
+- [ ] **[P0] Test CSV/XLSX import end to end:** cover preview, field mapping, valid and invalid rows, duplicate detection, repeated imports, row-level errors, and preservation of existing accepted values. (custom skill; Approach 3: Script Automation)
 - [ ] **[P0] Test proposal approval gates:** verify that imported/proposed information remains non-authoritative until approved, and that edit, reject, unresolved association, and conflict-resolution paths behave correctly. (custom skill)
 - [ ] **[P0] Test audit and source traceability:** verify that approvals, edits, rejections, and corrections retain actor/action, timestamp, prior/new values, and source attribution without erasing history. (custom skill)
 - [ ] **[P0] Test filters and dashboard drill-down:** verify all required filter fields and that exception counts/lists navigate to the correct project and supporting record. (custom skill)
 - [ ] **[P0] Test alert behavior:** verify links and explanations, missing-data behavior, and that unconfigured numeric thresholds do not trigger as if approved. (custom skill)
-- [ ] **[P0] Test executive summary output:** verify required sections, reporting period, generation time, freshness, preview corrections, and downloadable output. (custom skill)
-- [ ] **[P0] Test import/refresh failures:** verify actionable failure details, partial-failure reporting, and accurate dashboard last-refreshed state. (custom skill)
+- [ ] **[P0] Test executive summary output:** verify required sections, reporting period, generation time, freshness, preview corrections, and downloadable output. (custom skill; Approach 3: Script Automation)
+- [ ] **[P0] Test import/refresh failures:** verify actionable failure details, partial-failure reporting, and accurate dashboard last-refreshed state. (custom skill; Approach 3: Script Automation)
 - [ ] **[P0] Test local-only security defaults:** verify the server binds to loopback, is not reachable from another machine by default, and contains no embedded or plain-text credentials. (custom skill)
-- [ ] **[P1] Run acceptance scenarios against the representative dataset:** demonstrate each acceptance criterion with realistic multi-program data, including missing fields and exceptions. (custom skill)
-- [ ] **[P1] Validate performance against agreed targets:** measure dashboard and project search using the agreed project volume and record results. (custom skill)
-- [ ] **[P1] Test backup and deletion procedures:** verify the documented approach for backing up and deleting permitted local data and generated reports. (custom skill)
+- [ ] **[P1] Run acceptance scenarios against the representative dataset:** demonstrate each acceptance criterion with realistic multi-program data, including missing fields and exceptions. (custom skill; Approach 3: Script Automation for repeatable dataset-driven scenarios)
+- [ ] **[P1] Validate performance against agreed targets:** measure dashboard and project search using the agreed project volume and record results. (custom skill; Approach 3: Script Automation for repeatable benchmarks)
+- [ ] **[P1] Test backup and deletion procedures:** verify the documented approach for backing up and deleting permitted local data and generated reports. (custom skill; Approach 3: Script Automation for repeatable file-operation checks)
 
 ## Documentation
 
