@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-12
 
-**Status**: Draft
+**Status**: Clarified prototype scope
 
 **Input**: User description: Build a read-only local browser dashboard for the team's active Jira Cloud sprint, with a path to internal deployment. Source requirements: `work/jira-dashboard-requirements.md`.
 
@@ -111,27 +111,35 @@ visible data and refresh status for each case.
    checks the dashboard, **Then** the failure or partial result is clearly
    indicated and is not presented as a fully successful refresh.
 4. **Given** the dashboard is configured for periodic refresh, **When** it is
-   operating normally, **Then** it attempts to refresh Jira data at an interval
-   between 5 and 10 minutes.
+   open and operating normally, **Then** it begins a refresh every five
+   minutes without overlapping an earlier refresh.
+5. **Given** a refresh fails, **When** the result is shown, **Then** issue
+   details and metrics from an earlier refresh are cleared and the failure is
+   shown with the last successful refresh time.
 
 ## Edge Cases
 
-- The configured board identifier is missing, invalid, or the viewer cannot
-  access the board.
-- No active sprint exists, or Jira reports multiple active sprints for the
-  configured board.
+- The configured board ID is missing, invalid, inaccessible, or not a Scrum
+  board; setup stays incomplete and no issue data is shown.
+- No active sprint exists; show an empty state and do not substitute a past or
+  future sprint. If more than one active sprint is returned, show a
+  configuration error and no sprint data rather than selecting implicitly.
 - The Jira API is unavailable, rate-limits the request, times out, or returns
-  partial results.
-- A sprint issue is deleted, moved, or becomes inaccessible between refreshes.
-- An issue has no assignee, no story-point value, or an unknown status.
-- The configured story-point field is absent, unavailable, or inconsistent
-  across issues.
-- The rules for identifying blocked issues are not configured or cannot be
-  evaluated from the board's workflow.
-- A refresh is in progress while the viewer changes filters or navigates the
-  dashboard.
-- Jira credentials expire or do not represent the viewer whose permissions
-  must be enforced.
+  partial results; clear issue details and metrics, retain only the last
+  successful refresh timestamp, and display an actionable error.
+- A sprint issue is deleted, moved, or becomes inaccessible; omit it on the
+  next complete successful refresh and never use partial responses.
+- An issue has no assignee; show “Unassigned”. Missing or unavailable values
+  are shown as such, never as zero or as a known value.
+- The story-point field is missing or inaccessible; show issue counts and
+  mark point totals unavailable. Identify unestimated issues wherever the
+  configured field can be read.
+- A blocked-issue mapping is absent or cannot be evaluated; show the blocked
+  state as “Unknown”, not “Not blocked”, and identify the setup issue.
+- If refresh completes while the viewer changes filters, apply the current
+  filters to the new complete result.
+- Jira credentials expire or are revoked; clear issue data, stop presenting
+  the dashboard as current, and require the viewer to reconnect.
 
 ## Requirements *(mandatory)*
 
@@ -157,7 +165,9 @@ visible data and refresh status for each case.
 - **FR-009**: The system MUST emphasize blocked issues as the primary risk
   signal. Other risk signals are outside the first-release scope.
 - **FR-010**: The system MUST refresh Jira data every 5 to 10 minutes during
-  normal operation and provide the last successful refresh time.
+  normal operation and provide the last successful refresh time. For the
+  prototype, refresh MUST begin on dashboard startup and every five minutes
+  while the dashboard is open. It MUST NOT run while the dashboard is closed.
 - **FR-011**: The system MUST visibly report refresh errors and partial
   results, and MUST NOT label incomplete or failed data as a successful
   complete refresh.
@@ -168,18 +178,96 @@ visible data and refresh status for each case.
 - **FR-014**: The dashboard MUST be read-only. Issue changes MUST be made in
   Jira; the dashboard MUST NOT update Jira issues in the first release.
 - **FR-015**: The system MUST keep Jira credentials out of source code and
-  client-side code. The authentication and local credential-storage approach
-  MUST be decided before Jira integration is implemented.
+  client-side code. The prototype MUST use viewer-delegated Jira Cloud OAuth
+  2.0 (3LO) authorization with approved read-only scopes. Tokens MUST be held
+  by the backend and stored in macOS Keychain; OAuth client secrets MUST also
+  be stored there. Credentials MUST NOT be stored in PostgreSQL, browser
+  storage, or application configuration. A viewer MUST reconnect after
+  credentials expire or are revoked.
 - **FR-016**: The system MUST identify the configured board and the rule or
   field used to determine story points and blocked status during setup.
-- **FR-017**: The first release MUST run as a local prototype. Network exposure,
-  shared-user authentication, and internal deployment behavior MUST NOT be
-  assumed until separately specified and reviewed.
+- **FR-017**: The prototype MUST run for one local OS user and bind only to
+  loopback. LAN access, multi-user access, internal/team deployment, mobile
+  support, and production hosting MUST be out of scope and separately
+  specified and reviewed before implementation.
 - **FR-018**: The system MUST surface unavailable or unknown values distinctly
   from zero or a known value.
 - **FR-019**: The system MUST NOT automate Confluence content creation,
   modification, publication, or deletion as part of this feature. Confluence
-  behavior requires a separate approved specification.
+  integration and all Confluence behavior are out of scope for this prototype
+  and require a separate approved specification.
+- **FR-020**: The system MUST provide a manual refresh action and MUST NOT
+  start overlapping refreshes. Jira requests MUST time out after 30 seconds.
+  For rate limiting, the system MUST respect Jira's `Retry-After` response
+  and MUST NOT label the result successful. Failed refreshes MUST NOT be
+  retried automatically; the next attempt is the next scheduled refresh or a
+  user-triggered refresh, subject to `Retry-After`.
+- **FR-021**: The prototype MUST accept one Jira Scrum board ID during local
+  setup, validate that the current viewer can access it, and persist the
+  non-secret board configuration locally. The local operator MAY replace the
+  configured board through setup; changing it MUST clear the in-memory issue
+  result. The actual board ID is an environment-specific setup input and MUST
+  NOT be guessed or hard-coded.
+- **FR-022**: Setup MUST accept a board-specific story-point field ID when
+  available and require a deterministic blocked-issue mapping. The blocked
+  mapping MUST be either an explicitly selected Jira Boolean field or a
+  configured list of exact Jira status names. If a mapping is unavailable,
+  the affected value MUST be shown as “Unknown” or “Unavailable”; the system
+  MUST NOT infer that an issue is unblocked.
+- **FR-023**: The system MUST use the documented Jira Cloud REST API v3 and
+  Jira Software Agile REST API for issue, board, and sprint data. It MUST
+  paginate responses and MUST reject an incomplete or schema-invalid refresh
+  rather than displaying partial data as a complete sprint.
+- **FR-024**: Issue data and metrics MUST be scoped to the currently connected
+  Jira identity. The system MUST NOT share issue data or derived aggregates
+  between identities. A successful refresh MUST replace the previous
+  in-memory issue result; logout, identity change, refresh failure, or process
+  shutdown MUST clear that result.
+- **FR-025**: The system MUST calculate issue counts over all authorized
+  issues in the active sprint, regardless of UI filters. Done-category issues
+  are completed; every other returned status category is remaining. Point
+  totals MUST sum only available numeric estimates and MUST show estimate
+  coverage and the number of unestimated issues. If total estimated points are
+  greater than zero, point progress MUST be completed estimated points
+  divided by total estimated points; otherwise it MUST be “Unavailable”.
+  Missing estimates MUST NOT be treated as zero.
+- **FR-026**: The system MUST include all issues Jira returns as members of the
+  active sprint; it MUST NOT silently exclude subtasks or issue types.
+- **FR-027**: The system MUST support combined single-select status and
+  assignee filters, including an explicit “Unassigned” option. It MUST support
+  ascending and descending sorting by status or assignee, one sort key at a
+  time, with issue key ascending as the default and stable tie-breaker.
+  Unassigned values MUST sort last.
+- **FR-028**: Each issue row MUST show its key as a link to the corresponding
+  Jira issue when a valid URL is available. Assignees MUST use Jira's display
+  name; unassigned and unavailable values MUST be explicitly labeled. Missing
+  or unreadable fields MUST NOT cause an otherwise authorized issue to be
+  omitted; label each unavailable field distinctly.
+- **FR-029**: Blocked state MUST be represented by text and not color alone.
+  The desktop prototype MUST support current stable Chrome, Firefox, and
+  Safari on macOS and target WCAG 2.1 AA for implemented dashboard flows.
+  Mobile layout and formal performance SLAs or usability studies are out of
+  scope for this prototype.
+- **FR-030**: PostgreSQL 15 MUST store only non-secret board setup, field
+  mappings, and refresh metadata for the single local user. Jira issue
+  snapshots MUST remain in process memory only and MUST NOT be persisted or
+  backed up. Credentials MUST remain in macOS Keychain. Clearing local
+  application data MUST remove the stored setup and refresh metadata. The
+  Docker database port MUST be bound to loopback only.
+- **FR-031**: Automated acceptance tests MUST use synthetic Jira fixtures and
+  mocked API responses; CI MUST NOT require Jira credentials or real project
+  data. Fixtures MUST cover permissions, no/one/multiple active sprints,
+  missing estimates, unassigned issues, unknown blocked state, pagination,
+  rate limits, and partial failures. A manual live smoke test MAY use a
+  user-authorized test board and read-only access.
+- **FR-032**: The dashboard MUST identify the active sprint by name and show
+  its start/end dates when Jira provides them. Missing dates MUST be labeled
+  unavailable.
+- **FR-033**: The dashboard MUST provide a disconnect action that clears
+  in-memory issue data and removes the viewer's OAuth tokens from Keychain.
+  Resetting the local application MUST also remove its stored OAuth client
+  credentials. Revoking the app's grant at Atlassian is managed by the user
+  through Atlassian account settings.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -193,34 +281,42 @@ visible data and refresh status for each case.
   whose access rules determine which issues may be shown.
 - **Refresh result**: The outcome and time of a Jira data refresh, including
   success, partial completion, or failure and any actionable error details.
+- **Board configuration**: The non-secret local board ID, configured
+  story-point field ID, and blocked-issue mapping required to interpret Jira
+  data.
 
-### Open Questions / Needs Clarification
+### Prototype Decisions
 
-- **Board**: What is the Jira Scrum board name or URL to configure?
-- **Authentication**: How should local prototype viewers authenticate to Jira,
-  and how will the system preserve each viewer's Jira permissions? The
-  requirements imply per-viewer access but do not specify the local identity
-  flow.
-- **Credential storage**: Which approved local credential or OS credential
-  store should be used?
-- **Story points**: Which Jira field is authoritative for story points on the
-  configured board?
-- **Blocked issues**: Which workflow statuses, fields, or other agreed rule
-  defines a blocked issue?
-- **Multiple active sprints**: If Jira reports more than one active sprint for
-  the configured board, should setup fail or should a particular sprint be
-  selected?
-- **Refresh interpretation**: Is the 5-10 minute cadence measured from refresh
-  start or successful completion, and what should viewers see when Jira is
-  unavailable?
-- **Deployment**: What internal hosting, network exposure, and shared-user
-  authentication requirements apply before team-wide deployment?
-- **Confluence**: Which Confluence sources, content, user journeys, and
-  read/write actions are intended? No Confluence operation is included until
-  those requirements are specified.
-- **Success targets**: What project-level targets are required for dashboard
-  load time, refresh completion, and usability beyond the functional
-  acceptance criteria below?
+- Configure one board by its actual Jira board ID; setup validates access and
+  Scrum type. No active sprint produces an empty state; multiple active
+  sprints produce an error and no issue data.
+- Use delegated Jira Cloud OAuth 2.0 (3LO) with administrator-approved
+  read-only scopes. The local operator is the only viewer; tokens are kept in
+  macOS Keychain and never shared between identities.
+- The operator supplies the board's story-point field ID and an explicit
+  blocked mapping (a Boolean field or exact status names). Missing mappings
+  produce “Unavailable” or “Unknown”, never an inferred zero or unblocked
+  state.
+- Refresh at startup and every five minutes while the dashboard is open;
+  provide manual refresh, prohibit overlap, use a 30-second request timeout,
+  and respect `Retry-After`. A failed or partial refresh clears issue details
+  and metrics while retaining the last successful timestamp.
+- Compute counts over the full authorized sprint, unaffected by filters.
+  Done-category issues are complete; other returned statuses are remaining.
+  Sum only available numeric estimates, report estimate coverage, and mark
+  point progress unavailable when no positive estimated total exists.
+- Store only non-secret setup and refresh metadata in local PostgreSQL.
+  Issue snapshots are memory-only; no backups or historical issue records are
+  part of the prototype.
+- Support combined single-value status and assignee filters, sorting by
+  either field, issue-key ascending by default, and explicit unassigned and
+  unavailable labels. Link issue keys to Jira when a valid URL exists.
+- Use synthetic fixtures for automated tests; live Jira smoke testing is
+  optional and must use user-authorized read-only access.
+- Confluence, team/network deployment, mobile support, backup/recovery,
+  audit-history features, formal performance SLAs, and usability studies are
+  out of scope. The prototype targets current stable desktop Chrome, Firefox,
+  and Safari on macOS and WCAG 2.1 AA for implemented dashboard flows.
 
 ## Success Criteria *(mandatory)*
 
@@ -239,35 +335,48 @@ visible data and refresh status for each case.
   results.
 - **SC-005**: For test data containing blocked and unblocked issues, all
   blocked issues are identified and visually emphasized.
-- **SC-006**: Under normal operation, successive automatic refresh attempts
-  occur no less frequently than every 10 minutes and no more frequently than
-  every 5 minutes.
+- **SC-006**: While the dashboard is open and Jira is available, a refresh
+  begins on initial load and every five minutes thereafter; refreshes do not
+  overlap.
 - **SC-007**: In permission tests, no issue unavailable to the viewer in Jira
   appears in the dashboard or its displayed totals.
 - **SC-008**: In simulated refresh failure and partial-result tests, the
-  dashboard identifies the outcome and does not report a complete successful
-  refresh.
+  dashboard identifies the outcome, clears issue details and metrics, and
+  does not report a complete successful refresh.
 - **SC-009**: In first-release acceptance testing, no dashboard action creates,
   edits, or deletes Jira issues or Confluence content.
+- **SC-010**: Tests using synthetic Jira identities with disjoint issue
+  permissions confirm that issue rows and all derived metrics are isolated to
+  the active identity.
+- **SC-011**: Setup rejects an inaccessible/non-Scrum board and does not
+  display sprint data when zero or multiple active sprints are returned.
+- **SC-012**: Synthetic fixtures verify combined filters, sorting, missing
+  estimates, unassigned values, and blocked-state unknowns against the
+  specified labels, counts, and ordering.
 
 ## Assumptions
 
 - The initial product scope is the Jira active sprint dashboard described in
-  `work/jira-dashboard-requirements.md`; broader Jira and Confluence automation
-  requires additional feature specifications.
-- The configured Jira board is a Scrum board and has at most one active sprint
-  for the dashboard's expected operation; handling multiple active sprints
-  remains an open decision.
+  `work/jira-dashboard-requirements.md`; broader Jira automation requires
+  additional feature specifications.
+- The prototype has one local OS user and one connected Jira OAuth identity at
+  a time; it binds to loopback only.
+- The configured board ID, story-point field (if applicable), and blocked
+  mapping are supplied as setup inputs and validated rather than inferred.
+- If Jira returns zero active sprints, the UI shows an empty state; if Jira
+  returns more than one, the UI shows a configuration error and no sprint
+  data.
 - Jira remains the authoritative source for issue data and issue changes.
-- The dashboard is read-only and the first release is a local prototype.
-- A viewer must see only Jira issues permitted by that viewer's own Jira
-  permissions. The mechanism for doing so must be clarified before integration
-  work.
-- Story points and blocked status depend on board-specific Jira configuration
-  that has not yet been provided.
-- No numerical service-level, usability, or performance targets are supplied;
-  the measurable criteria above are feature acceptance checks, not production
-  SLAs.
+- Each Jira API request uses the currently connected viewer's delegated
+  authorization; no shared Jira service credential is used.
+- Failed or partial refreshes do not leave earlier issue data visible. No
+  issue snapshot is persisted between requests or identities.
+- The prototype runs on macOS, uses the OS Keychain for credentials, and
+  stores only non-secret setup and refresh metadata in local PostgreSQL.
+- Confluence, team/network deployment, mobile layout, backups, audit history,
+  performance SLAs, and formal usability studies are out of scope.
+- Automated integration tests use synthetic fixtures; live Jira access is an
+  optional user-authorized smoke test.
 - React 18 with Vite, Node.js with Express, and PostgreSQL 15 via Docker are
   project-level technology constraints recorded in `spec/constitution.md`;
   implementation planning belongs in a separate plan artifact.

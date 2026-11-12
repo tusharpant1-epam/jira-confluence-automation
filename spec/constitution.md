@@ -32,8 +32,9 @@ and approve it before implementation.
 
 - Never commit credentials, tokens, or secrets to source control or expose them
   in client-side code, logs, error messages, or reports.
-- Use an approved secret or credential-storage mechanism; the specific
-  mechanism must be decided before integration work begins.
+- Store local Jira credentials in the operating system credential store; the
+  prototype targets macOS Keychain. Never persist tokens in PostgreSQL,
+  application configuration, browser storage, or source control.
 - Collect, retain, and transmit only data needed for an approved feature.
 - Do not send project data to external services unless the data handling and
   service have been explicitly approved.
